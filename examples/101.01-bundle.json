@@ -60,36 +60,32 @@
   ],
   "name": "helloworld",
   "outputs": {
-    "fields": {
-      "clientCert": {
-        "definition": "x509Certificate",
-        "path": "/cnab/app/outputs/clientCert"
-      },
-      "hostName": {
-        "applyTo": [
-          "install"
-        ],
-        "definition": "string",
-        "description": "the hostname produced installing the bundle",
-        "path": "/cnab/app/outputs/hostname"
-      },
-      "port": {
-        "definition": "port",
-        "path": "/cnab/app/outputs/port"
-      }
+    "clientCert": {
+      "definition": "x509Certificate",
+      "path": "/cnab/app/outputs/clientCert"
+    },
+    "hostName": {
+      "applyTo": [
+        "install"
+      ],
+      "definition": "string",
+      "description": "the hostname produced installing the bundle",
+      "path": "/cnab/app/outputs/hostname"
+    },
+    "port": {
+      "definition": "port",
+      "path": "/cnab/app/outputs/port"
     }
   },
   "parameters": {
-    "fields": {
-      "backend_port": {
-        "definition": "http_port",
-        "description": "The port that the back-end will listen on",
-        "destination": {
-          "env": "BACKEND_PORT"
-        }
+    "backend_port": {
+      "definition": "http_port",
+      "description": "The port that the back-end will listen on",
+      "destination": {
+        "env": "BACKEND_PORT"
       }
     }
   },
-  "schemaVersion": "v1.0.0-WD",
+  "schemaVersion": "v1.0.0",
   "version": "0.1.2"
 }

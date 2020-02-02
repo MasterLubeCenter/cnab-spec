@@ -11,7 +11,7 @@ The [Invocation Image definition](102-invocation-image.md) specifies the layout 
 
 ## The Run Tool (Main Entry Point)
 
-The main entry point of a CNAB bundle MUST be located at `/cnab/app/run`. When a compliant CNAB runtime executes a bundle, it MUST execute the `/cnab/app/run` tool. In addition, images used as invocation images SHOULD also default to running `/cnab/app/run`. For example, a `Dockerfile`'s `exec` array MUST point to this entry point.
+The main entry point of a CNAB bundle MUST be located at `/cnab/app/run`. When a compliant CNAB runtime executes a bundle, it MUST execute the `/cnab/app/run` tool. In addition, images used as invocation images SHOULD also default to running `/cnab/app/run`. For example, a `Dockerfile`'s `exec` array SHOULD point to this entry point.
 
 > A fixed location for the `run` tool is mandated because not all image formats provide an equivalent method for starting an application. A client implementation of CNAB MAY access the image and directly execute the path `/cnab/app/run`. It is also permissible, given tooling constraints, to set the default entry point to a different path.
 
@@ -22,6 +22,7 @@ The run tool MUST observe standard conventions for executing, exiting, and writi
 - The special output stream STDERR should be used to write error text
 
 ### Bundle Definition
+
 The bundle definition is made accessible from inside the invocation image in order to allow the run tool to reference information in the file. The `bundle.json` MUST be mounted to `/cnab/bundle.json`.
 
 ### Injecting Data Into the Invocation Image
@@ -29,7 +30,7 @@ The bundle definition is made accessible from inside the invocation image in ord
 CNAB allows injecting data into the invocation image in two ways:
 
 - Environment Variables: This is the preferred method. In this method, data is encoded as a string and placed into the the environment with an associated name.
-- Files: Additional files MAY be injected _at known points_ into the invocation image. In the current specification, only credentials MAY be injected this way.
+- Files: Additional files MAY be injected _at known points_ into the invocation image via credentials or parameters.
 
 The spec does not define or constrain any network interactions between the invocation image and external services or sources.
 
@@ -43,7 +44,7 @@ CNAB_BUNDLE_NAME=helloworld
 CNAB_ACTION=install
 ```
 
-The _installation name_ is the name of the _instance of_ this application. The value of `CNAB_INSTALLATION_NAME` MUST be the installation name. Consider the situation where an application ("wordpress") is installed multiple times into the same cloud. Each installation MUST have a unique installation name, even though they will be installing the same CNAB bundle. Instance names MUST consist of Graph Unicode characters and MAY be user-readable. The Unicode Graphic characters include letters, marks, numbers, punctuation, symbols, and spaces, from categories L, M, N, P, S, Zs.
+The _installation name_ is the name of the _instance of_ this application. The value of `CNAB_INSTALLATION_NAME` MUST be the installation name. Consider the situation where an application ("wordpress") is installed multiple times into the same cloud. Each installation MUST have a unique installation name, even though they will be installing the same CNAB bundle. Installation names MUST consist of Graph Unicode characters and MAY be user-readable. The Unicode Graphic characters include letters, marks, numbers, punctuation, symbols, and spaces, from categories L, M, N, P, S, Zs.
 
 The _bundle name_ is the name of the bundle (as represented in `bundle.json`'s `name` field). The specification of this field is in the [bundle definition](101-bundle-json.md). The value of `CNAB_BUNDLE_NAME` MUST be set to the bundle name.
 
@@ -96,11 +97,13 @@ An implementation of a CNAB runtime MUST support sending the following actions t
 - `upgrade`
 - `uninstall`
 
-Invocation images SHOULD implement `install` and `uninstall`. If one of these REQUIRED actions is not implemented, an invocation image MUST NOT generate an error (though it MAY generate a warning). Implementations MAY map the same underlying operations to multiple actions (example: `install` and `upgrade` MAY perform the same action).
+Invocation images SHOULD implement `install` and `uninstall`. If one of these REQUIRED actions is not implemented, an invocation image MUST NOT generate an error (though it MAY generate a warning). Implementations MAY map the same underlying operations to multiple actions (example: `install` and `upgrade` MAY perform the same action). The runtime MUST NOT perform a [bundle version](101-bundle-json.md#name-and-version-identifying-metadata) comparison when executing an action against an existing installation but the invocation image MAY return an error if the version transition is not supported.
 
 In addition to the default actions, CNAB runtimes MAY support custom actions (as defined in [the bundle definition](101-bundle-json.md)). Any invocation image whose accompanying bundle definition specifies custom actions SHOULD implement those custom actions. A CNAB runtime MAY exit with an error if a custom action is declared in the bundle definition, but cannot be executed by the invocation image.
 
 A bundle MUST exit with an error if the action is executed, but fails to run to completion. A CNAB runtime MUST issue an error if a bundle issues an error. And an error MUST NOT be issued if one of the three built-in actions is requested, but not present in the bundle. Errors are reserved for cases where something has gone wrong.
+
+In the event of an an error, the installation state MUST be considered as undefined. A subsequent execution of the same action or another action MAY resolve the installation state (example: a failed `install` action MAY be fixed by executing the `upgrade` action, a failed `upgrade` action MAY be fixed by executing the `upgrade` action again). A subsequent execution of the `uninstall` action SHOULD resolve the installation state.
 
 ## Setting Parameter Values
 
@@ -117,13 +120,11 @@ If the `destination` field contains a key named `env`, values MUST be passed int
     }
   },
   "parameters": {
-    "fields": {
-      "greeting": {
-        "definition": "greeting",
-        "description": "this will be in $GREETING",
-        "destination": {
-          "env": "GREETING"
-        }
+    "greeting": {
+      "definition": "greeting",
+      "description": "this will be in $GREETING",
+      "destination": {
+        "env": "GREETING"
       }
     }
   }
@@ -137,8 +138,9 @@ The parameter value is evaluated thus:
 - If the CNAB runtime provides a value, that value MAY be sanitized, then validated (as described below), then injected as the parameter value. In the event that sanitization or validation fail, the runtime SHOULD return an error and discontinue the action.
 - If the parameter is marked `required` and a value is not supplied, the CNAB Runtime MUST produce an error and discontinue action.
 - If the CNAB runtime does not provide a value, but `default` is set, then the default value MUST be used.
+- If the parameter is marked `required` and `default` is set, then the requirement is satisfied by the runtime-provided default.
 - If no value is provided and `default` is unset, the runtime MUST set the value to an empty string (""), regardless of type.
-- If an immutable parameter value is specified at any time after _install_, the CNAB Runtime MUST produce an error and discontinue action.
+- Values are encoded as JSON strings.
 
 > Setting the value of other types to a default value based on type, e.g. Boolean to `false` or integer to `0`, is considered _incorrect behavior_. Setting the value to `null`, `nil`, or a related character string is also considered incorrect.
 
@@ -153,13 +155,11 @@ In the case where the `destination` object has a `path` field, the CNAB runtime 
     }
   },
   "parameters": {
-    "fields": {
-      "greeting": {
-        "definition": "greeting",
-        "description": "this will be in $GREETING",
-        "destination": {
-          "path": "/var/run/greeting.txt"
-        }
+    "greeting": {
+      "definition": "greeting",
+      "description": "this will be in /var/run/greeting.txt",
+      "destination": {
+        "path": "/var/run/greeting.txt"
       }
     }
   }
@@ -168,7 +168,7 @@ In the case where the `destination` object has a `path` field, the CNAB runtime 
 
 In the example above, the CNAB runtime creates a file at `/var/run/greeting.txt` whose content (if not overridden) is `hello`. If an empty string is provided as the parameter value, the file must still be created.
 
-A `path` MUST be absolute. But in the event that a CNAB runtime receives a relative path, it MUST treat the file as if it were the root path were prepended. Thus `var/run/greeting.txt` is treated (on Linux/UNIX) as `/var/run/greeting.txt`. In the cases where operating system pathing types differ, a CNAB runtime MAY freely translate between absolute pathing structures. `c:\foo.txt`, when passed to a Linux/UNIX system, MAY be translated to `/foo.txt`. In this way, multiple invocation images may share parameters regardless of the underlying OS.
+A `path` MUST be absolute. But in the event that a CNAB runtime receives a relative path, it MUST treat the file as if the root path were prepended. Thus `var/run/greeting.txt` is treated (on Linux/UNIX) as `/var/run/greeting.txt`. In the cases where operating system pathing types differ, a CNAB runtime MAY freely translate between absolute pathing structures. `c:\foo.txt`, when passed to a Linux/UNIX system, MAY be translated to `/foo.txt`. In this way, multiple invocation images may share parameters regardless of the underlying OS.
 
 If `destination` contains both a `path` and an `env`, the CNAB runtime MUST provide both.
 
@@ -205,10 +205,11 @@ For example, if a CNAB bundle with an image `gabrtv/microservice@sha256:cca460af
 
 ```json
 {
- "gabrtv/microservice@sha256:cca460afa270d4c527981ef9ca4989346c56cf9b20217dcea37df1ece8120687": "my.registry/microservice@sha256:cca460afa270d4c527981ef9ca4989346c56cf9b20217dcea37df1ece8120687",
- "technosophos/helloworld:0.1.0": "my.registry/helloworld:0.1.0"
+  "gabrtv/microservice@sha256:cca460afa270d4c527981ef9ca4989346c56cf9b20217dcea37df1ece8120687": "my.registry/microservice@sha256:cca460afa270d4c527981ef9ca4989346c56cf9b20217dcea37df1ece8120687",
+  "technosophos/helloworld:0.1.0": "my.registry/helloworld:0.1.0"
 }
 ```
+
 Source: [103.01-relocation-mapping.json](examples/103.01-relocation-mapping.json)
 
 The run tool MAY use this file to modify its behavior. For example, a run tool MAY substitute image references using the mapping in this file.

@@ -4,6 +4,12 @@
 
 Cloud Native Application Bundles (CNAB) are a package format specification that describes a technology for bundling, installing, and managing distributed applications, that are by design, cloud agnostic.
 
+## CNAB Core 1.0 (Final)
+
+The CNAB Working Group with the joint approval of the Executive Directors has approved the CNAB Core 1.0 specification for publication. CNAB Core 1.0 is complete.
+
+For more information on the approval process, see [the process documentation](901-process.md). Further changes to CNAB Core will be considered for CNAB Core 1.1.
+
 ## Table of Contents
 
 - Chapter 1: [Cloud Native Application Bundle Core 1.0.0 (CNAB1)](100-CNAB.md)
@@ -35,13 +41,13 @@ The specification is licensed under [OWF Contributor License Agreement 1.0 - Cop
   * https://zoom.us/j/653255416
   * [Meeting notes and Agenda](https://aka.ms/cnab/meeting).
 
-### Mailing List
-- Send emails to: [dev@opencontainers.org](mailto:dev@opencontainers.org)
-- To subscribe see: https://groups.google.com/a/opencontainers.org/forum/#!forum/dev
-
 ### Slack Channel
 #cnab Slack channel for related discussion in
 [CNCF's Slack workspace](https://slack.cncf.io/).
+
+### Mailing List
+
+We operate a [mailing list](https://lists.jointdevelopment.org/g/CNAB-Main) via the Joint Development Foundation.
 
 ## Notational Conventions
 
@@ -58,11 +64,10 @@ An implementation IS NOT compliant if it fails to satisfy one or more of the MUS
 
 ## Document Naming Conventions
 
-During the draft period of the specification, the documents are named according to the following convention:
-
-- `000-099` contains front matter
-- `100`-`799` contain the specification proper
-  - The first digit is the chapter number
-  - The following two digits are the section numbers
-- `800`-`899` is reserved for non-normative content (examples, patterns, best practices)
-- `900`-`999` is reserved for appendices
+- The CNAB Core specification is contained in the 1xx documents.
+- The CNAB Registry specification is contained in the 2xx documents.
+- The CNAB Security specification reserves 3xx level documents.
+- The Claims specification reserves 4xx documents.
+- The CNAB Dependencies specification uses 5xx documents.
+- The 8xx-level documents are reserved for non-normative guidance.
+- The 9xx-level documents are reserved for process documents.

@@ -3,13 +3,27 @@
     "hostkey": {
       "env": "HOST_KEY",
       "path": "/etc/hostkey.txt"
-    },
-    "image_token": {
-      "env": "AZ_IMAGE_TOKEN"
-    },
-    "kubeconfig": {
-      "path": "/home/.kube/config"
     }
+  },
+  "custom": {
+    "com.example.backup-preferences": {
+      "frequency": "daily"
+    },
+    "com.example.duffle-bag": {
+      "icon": "https://example.com/icon.png",
+      "iconType": "PNG"
+    },
+    "io.cnab.dependencies": [
+      {
+        "requires": {
+          "bundle": "azure/mysql",
+          "version": {
+            "prereleases": "true",
+            "range": "5.7.x"
+          }
+        }
+      }
+    ]
   },
   "definitions": {
     "http_port": {
@@ -33,31 +47,26 @@
       "writeOnly": true
     }
   },
-  "description": "An example 'thick' helloworld Cloud-Native Application Bundle",
+  "description": "An example 'thin' helloworld Cloud-Native Application Bundle",
   "images": {
     "my-microservice": {
-      "contentDigest": "sha256:bbbbbbbbbbbb...",
-      "description": "helloworld microservice",
-      "image": "technosophos/helloworld:0.1.2",
-      "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
-      "labels": {
-        "architecture": "amd64",
-        "os": "linux"
-      },
-      "size": 1337
+      "contentDigest": "sha256:aaaaaaaaaaaa...",
+      "description": "my microservice",
+      "image": "technosophos/microservice:1.2.3"
     }
   },
   "invocationImages": [
     {
-      "contentDigest": "sha256:aaaaaaaaaaaa...",
-      "image": "technosophos/helloworld:1.2.3",
-      "imageType": "docker",
-      "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
-      "labels": {
-        "architecture": "amd64",
-        "os": "linux"
-      },
-      "size": 1337
+      "contentDigest": "sha256:aaaaaaa...",
+      "image": "technosophos/helloworld:0.1.0",
+      "imageType": "docker"
+    }
+  ],
+  "maintainers": [
+    {
+      "email": "matt.butcher@microsoft.com",
+      "name": "Matt Butcher",
+      "url": "https://example.com"
     }
   ],
   "name": "helloworld",
@@ -82,12 +91,15 @@
   "parameters": {
     "backend_port": {
       "definition": "http_port",
-      "description": "The port that the backend will listen on",
+      "description": "The port that the back-end will listen on",
       "destination": {
-        "path": "/path/to/backend_port"
+        "env": "BACKEND_PORT"
       }
     }
   },
+  "requiredExtensions": [
+    "io.cnab.dependencies"
+  ],
   "schemaVersion": "v1.0.0",
-  "version": "1.0.0"
+  "version": "0.1.2"
 }

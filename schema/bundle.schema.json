@@ -50,7 +50,9 @@
         "labels": {
           "description": "Key/value pairs that used to specify identifying attributes of images",
           "type": "object",
-          "additionalProperties": {"type": "string"}
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "mediaType": {
           "description": "The media type of the image",
@@ -85,7 +87,9 @@
         "labels": {
           "description": "Key/value pairs that used to specify identifying attributes of invocation images",
           "type": "object",
-          "additionalProperties": {"type": "string"}
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "mediaType": {
           "description": "The media type of the image",
@@ -161,10 +165,10 @@
           },
           "type": "object"
         },
-        "immutable": {
-          "description": "A flag indicating if the parameter value can be changed once it is set",
-          "type" : "boolean",
-          "default": false
+        "required": {
+          "default": false,
+          "description": "Indicates whether this parameter must be supplied. By default, parameters are optional.",
+          "type": "boolean"
         }
       },
       "required": [
@@ -206,11 +210,13 @@
       "type": "object"
     },
     "custom": {
-      "$comment": "reserved for custom extensions"
+      "$comment": "reserved for custom extensions",
+      "type": "object",
+      "additionalProperties": true
     },
     "definitions": {
       "additionalProperties": {
-        "$ref": "http://json-schema.org/draft-07/schema#"
+        "$ref": "http://cnab.io/v1/definitions.schema.json"
       },
       "type": "object"
     },
@@ -273,31 +279,25 @@
       "type": "string"
     },
     "outputs": {
-      "description": "Values that are produced by executing the invocation image",
-      "properties": {
-        "fields": {
-          "additionalProperties": {
-            "$ref": "#/definitions/output"
-          },
-          "type": "object"
-        }
+      "additionalProperties": {
+        "$ref": "#/definitions/output"
       },
+      "description": "Values that are produced by executing the invocation image",
       "type": "object"
     },
     "parameters": {
-      "description": "Parameters that can be injected into the invocation image",
-      "properties": {
-        "fields": {
-          "additionalProperties": {
-            "$ref": "#/definitions/parameter"
-          },
-          "type": "object"
-        },
-        "required": {
-          "$ref": "http://json-schema.org/draft-07/schema#/properties/required"
-        }
+      "additionalProperties": {
+        "$ref": "#/definitions/parameter"
       },
+      "description": "Parameters that can be injected into the invocation image",
       "type": "object"
+    },
+    "requiredExtensions": {
+      "description": "A collection of extensions required for this bundle.",
+      "type": "array",
+      "additionalProperties": {
+        "type": "string"
+      }
     },
     "schemaVersion": {
       "description": "The version of the CNAB specification. This should always be the string 'v1' for this schema version.",

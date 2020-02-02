@@ -13,11 +13,11 @@
           "type": "string"
         },
         "status": {
-          "descripton": "The status of the last action",
+          "description": "The status of the last action",
           "enum": [
             "failure",
             "success",
-            "underay",
+            "underway",
             "unknown"
           ],
           "type": "string"
@@ -51,6 +51,10 @@
     "name": {
       "description": "the name of the installation",
       "type": "string"
+    },
+    "outputs": {
+      "description": "key/value pairs of output name to output value.",
+      "type": "object"
     },
     "parameters": {
       "description": "key/value pairs of parameter name to parameter value.",
